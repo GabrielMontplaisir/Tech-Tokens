@@ -34,6 +34,7 @@ function onSubmit(e) {
   const teacher = updateToolSheet(email, tool, path);
   const teacherNumTokens = teacher.numTokens;
   const teacherExpert = teacher.expert;
+  const completed = teacher.completed;
 
   /* This code segment calls on findToken() to find the Tech token to send to the user. It also returns how many tech tokens exist for the tool, and some formatting for the pathway.
   *  If it fails, it will send an error email.
@@ -53,16 +54,18 @@ function onSubmit(e) {
   *  Anything contained within ${} is a dynamic value based on the above.
   *  The email body is coded in HTML.
   */
-  MailApp.sendEmail({
-    to: email,
-    subject: `Congratulations on completing the ${pathway} Tech Token Learning Path!`,
-    htmlBody:`<p>Hi ${name},</p>
-    <p>Way to go! You've conquered the ${pathway} Pathway, and we're thrilled to reward you with the attached token. Want to show off your accomplishment? Check out <a href="https://drive.google.com/file/d/1CawdWcyvUzLDIR5Jx2eG0KMDX_SQC4ga/view?usp=sharing" target="_blank">these instructions</a> to add it to your signature. Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Keep shining, tech wizard!</p>
-    
-    <p>The B&LT Academic Team</p>`,
-    attachments: tokenFile,
-    name: "B&LT Academic Team",
-  });
+  if (!completed) {
+    MailApp.sendEmail({
+      to: email,
+      subject: `Congratulations on completing the ${pathway} Tech Token Learning Path!`,
+      htmlBody:`<p>Hi ${name},</p>
+      <p>Way to go! You've conquered the ${pathway} Pathway, and we're thrilled to reward you with the attached token. Want to show off your accomplishment? Check out <a href="https://drive.google.com/file/d/1CawdWcyvUzLDIR5Jx2eG0KMDX_SQC4ga/view?usp=sharing" target="_blank">these instructions</a> to add it to your signature. Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Keep shining, tech wizard!</p>
+      
+      <p>The B&LT Academic Team</p>`,
+      attachments: tokenFile,
+      name: "B&LT Academic Team",
+    });
+  }
 
 
   /*  Send a second email with an Expert Token if the teacher has not received one yet, and if they meet or exceed the number of tech tokens found in the "Tokens" tab.
@@ -243,13 +246,16 @@ function updateToolSheet(email, tool, path) {
     toolSheet.getRange(1,pathCol).setValue(path);
   };
 
+  const rowCol = toolSheet.getRange(userRow,pathCol);
+
+  const completed = rowCol.getValue();
   // Add a checkbox in the appropriate userRow and pathCol. Check the box.
-  toolSheet.getRange(userRow,pathCol).insertCheckboxes().check();
+  rowCol.insertCheckboxes().check();
   
   // The first index is their email. Therefore, the number of tokens the user has is the array length - 1.
   user = toolSheet.getDataRange().getValues(); // Reinitiate user.
   const numTokens = user.find((value) => value[0].trim() === email).filter((el) => el === true).length;
 
-  return {numTokens, expert: toolSheet.getRange(userRow, 2).getValue()}
+  return {numTokens, completed, expert: toolSheet.getRange(userRow, 2).getValue()}
 }
 
