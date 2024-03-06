@@ -73,7 +73,10 @@ function onSubmit(e) {
   */
   if (teacherNumTokens >= toolNumTokens && !teacherExpert) {
     try {
-      expertTokenFile = findToken("Expert Tokens", tool).tokenFile;
+      const expertToken = findToken("Expert Tokens", tool);
+
+      if (!expertToken) return;
+      expertTokenFile = expertToken.tokenFile;
 
       /* Send email with the expert token as an attachment.
       *  Anything contained within ${} is a dynamic value based on the above.
@@ -181,6 +184,7 @@ function findToken(tab, tool, path, pathway) {
   const listTokensForTool = tokenList.filter((token) => token[0].trim().toLowerCase() === tool.toLowerCase());
 
   if (listTokensForTool.length < 1) {
+    if (tab === "Expert Tokens") return false;
     throw(`The tool (${tool}) could not be found in the Tokens tab. Please ensure that it exists and its name matches the one found in the Google Form, along with its pathway and TokenID.`);
   }
 
@@ -219,6 +223,7 @@ function updateToolSheet(email, tool, path) {
     toolSheet = ss.insertSheet().setName(tool);       // Insert a sheet and set its name to <tool>.
     toolSheet.getRange("A1").setValue("Teacher");     // Set some preset default formatting to the sheet. Set cell A1 to "Teacher".
     toolSheet.getRange("B1").setValue("Expert");     // Set some preset default formatting to the sheet. Set cell A1 to "Teacher".
+    toolSheet.hideColumns(2);
     toolSheet.setFrozenColumns(1);                    // Freeze the first column.
     toolSheet.setFrozenRows(1);                       // Freeze the first row.
   };
