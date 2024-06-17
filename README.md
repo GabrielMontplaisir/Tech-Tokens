@@ -1,6 +1,6 @@
-# OCDSB-Tech-Tokens
+# Tech-Tokens
 
-Code for sending an email when a user completes a tech token for the OCDSB: https://docs.google.com/spreadsheets/d/1QQ2yQJy4mDPt4H5Wz6VZ1HYRDjo0fP5T2NnL99l57Bw/edit#gid=901404802
+Code for sending an email when a user completes a tech token.
 
 Here's how it works:
 

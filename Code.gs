@@ -1,4 +1,4 @@
-/* This script automatically retrieves form responses on submission from https://docs.google.com/forms/d/1AUYyGcqMSBNeHG17gOVa4NcP-Cd5kYH33dU_q8MVKUc/edit
+/* This script automatically retrieves form responses on submission
 *  and sends an email to the responder with a pre-created message along with an image of the tech token.
 *  I will add comments throughout to explain what everything does to the best of my abilities.
 */
@@ -8,23 +8,21 @@
 /* @param {Event} e The Form Submit event. More details here (Under Google Sheets Events > Form Submit): https://developers.google.com/apps-script/guides/triggers/events
 *  The "event" (e) will output the form values, kind of how it's spit out in the Google Sheet in a typical "Form Responses" tab. We manipulate this data as we need.
 */
-function onSubmit(e) {
-  const formResponses = e.values;                     // The "raw" form response ansers from the user. Includes the user email.
-  const row = e.range.rowStart;                       // The row where the responses are placed in the spreadsheet.
-  const newArr = formResponses.filter((el) => el);    // By default, not all columns in the "Form Responses" tab are filled, we therefore need to eliminate all empty values from the formResponses.
-  
-  const email = newArr[1].trim();                     // Save the user's email separately. The .trim() will eliminate all empty spaces before and after the email address.
-  const tool = newArr[2].trim();                      // Save the tool separately. Eg. Canva, Minecraft, WeVideo.
-  const path = movePathway(row, formResponses);       // Calls movePathway(). Takes in the row and form responses. You can find the movePathway() function towards the bottom of this page.
-  const pathway = (!path) ? tool : `${tool} - ${path}`; // Set some formatting for the email.
 
-  // Find the person's first name. Adds a little "personal" touch to the email.
+function onSubmit(e) {
+  const formResponses = e.values;
+  const row = e.range.rowStart;
+  const newArr = formResponses.filter((el) => el);
+  
+  const email = newArr[1].trim();
+  const tool = newArr[2].trim();
+  const path = movePathway(row, formResponses);
+  const pathway = (!path) ? tool : `${tool} - ${path}`;
+
   let name;
   try {
-    // Here, we're accessing public Google information related to the person's profile. Set by the OCDSB domain.
     name = AdminDirectory.Users.get(email, {viewType:'domain_public', fields:'name'}).name.givenName;
   } catch(e) {
-    // If the above failed, use the prefix in the person's email. Retrieve the part before the period, and capitalize the first letter using capitalizeString() function. See below for that code.
     name = capitalizeString(email.split('.')[0]);
   }
 
@@ -59,7 +57,7 @@ function onSubmit(e) {
       to: email,
       subject: `Congratulations on completing the ${pathway} Tech Token Learning Path!`,
       htmlBody:`<p>Hi ${name},</p>
-      <p>Way to go! You've conquered the ${pathway} Pathway, and we're thrilled to reward you with the attached token. Want to show off your accomplishment? Check out <a href="https://drive.google.com/file/d/1CawdWcyvUzLDIR5Jx2eG0KMDX_SQC4ga/view?usp=sharing" target="_blank">these instructions</a> to add it to your signature. Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Keep shining, tech wizard!</p>
+      <p>Way to go! You've conquered the ${pathway} Pathway, and we're thrilled to reward you with the attached token. Want to show off your accomplishment? Check out <a href="" target="_blank">these instructions</a> to add it to your signature. Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Keep shining, tech wizard!</p>
       
       <p>The B&LT Academic Team</p>`,
       attachments: tokenFile,
@@ -115,7 +113,7 @@ function emailError(tokenType, email, tool, name) {
     subjectLine = `Congratulations on completing the ${tool} Tech Token Learning Path!`; 
     emailBody = `
       <p>Hi ${name}!</p>
-      <p>Way to go! You've conquered the ${tool} Pathway! Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Unfortunately, there was a slight problem on our end and we could not automatically retrieve the tech token for you. If you would like to receive the tech token for your completion, please email <a href="mailto:blt.academic@ocdsb.ca">blt.academic@ocdsb.ca</a>, and we will send it to you as soon as possible!</p>
+      <p>Way to go! You've conquered the ${tool} Pathway! Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Unfortunately, there was a slight problem on our end and we could not automatically retrieve the tech token for you. If you would like to receive the tech token for your completion, please email <a href="">email address</a>, and we will send it to you as soon as possible!</p>
       
       <p>Keep shining, tech wizard!</p>
       
@@ -125,7 +123,7 @@ function emailError(tokenType, email, tool, name) {
     subjectLine = `You've earned an Expert Token for ${tool}!`; 
     emailBody = `
       <p>Hi ${name},</p>
-        <p>We noticed that you've completed ALL Tech Token Learning Pathways for ${tool}. What an achievement, and a whole lot of learning! Feel free to share everything you've learned with other educators at your site. Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Unfortunately, there was a slight problem on our end and we could not automatically retrieve the expert token for you. If you would like to receive it, please email <a href="mailto:blt.academic@ocdsb.ca">blt.academic@ocdsb.ca</a>, and we will send it to you as soon as possible! Once you do, feel free to replace any current tokens for ${tool} you have in your signature with this sparkly new one.</p>
+        <p>We noticed that you've completed ALL Tech Token Learning Pathways for ${tool}. What an achievement, and a whole lot of learning! Feel free to share everything you've learned with other educators at your site. Pathways will continue to be added, so check back for new Tech Tokens to add to your collection. Unfortunately, there was a slight problem on our end and we could not automatically retrieve the expert token for you. If you would like to receive it, please email <a href="">email address</a>, and we will send it to you as soon as possible! Once you do, feel free to replace any current tokens for ${tool} you have in your signature with this sparkly new one.</p>
       
       <p>Keep shining, tech wizard!</p>
       
@@ -135,7 +133,7 @@ function emailError(tokenType, email, tool, name) {
 
   MailApp.sendEmail({
     to: email,
-    bcc: "blt.academic@ocdsb.ca",
+    bcc: "",
     subject: subjectLine,
     htmlBody: emailBody,
     name: "B&LT Academic Team",
@@ -152,27 +150,27 @@ function emailError(tokenType, email, tool, name) {
 
 function movePathway(row, formResponse) {
   try {
-    const ss = SpreadsheetApp.getActive().getActiveSheet();                                                             // Retrieve the current sheet (Form Responses)
-    const colHeaders = ss.getDataRange().getValues()[0];                                                                // Retrieve the column headers for the first row in the sheet.
-    const firstPathCol = colHeaders.findIndex((el) => el.toString().toLowerCase().includes("which pathway")) + 1;       // Find the first question which begins with "which pathway". We'll place the pathway from the form response to this column later.
+    const ss = SpreadsheetApp.getActive().getActiveSheet();
+    const colHeaders = ss.getDataRange().getValues()[0];
+    const firstPathCol = colHeaders.findIndex((el) => el.toString().toLowerCase().includes("which pathway")) + 1;
 
     // Iterate through the raw form responses, and create a new array (a list of items) where the item in the form response corresponds to the "which pathway" question.
     // This should return a singular item.
     // We then find it and assign the index (column) and the pathway (path) to variables. 
+
     const {index, path} = formResponse.map((el, i) => {
       if (el && colHeaders[i].toString().toLowerCase().includes("which pathway")) {
         return {index: i+1, path: el};
       }
     }).find((el) => el);
 
-    if (index !== firstPathCol) ss.hideColumns(index);  // For cleanliness, we hide the original question because we're moving the response to the firstPathCol, unless it's the firstPathCol.
-    ss.getRange(row, index).clear();                  // Delete the original response.
-    ss.getRange(row, firstPathCol).setValue(path);    // Place the original response to the firstPathCol in the correct row.
+    if (index !== firstPathCol) ss.hideColumns(index);
+    ss.getRange(row, index).clear();
+    ss.getRange(row, firstPathCol).setValue(path);
 
-    // Return the name of the pathway (string)
     return path;
+
   } catch (e) {
-    // If there's an error in the code above, then return an empty string.
     return ""
   }
 }
@@ -215,17 +213,17 @@ function findToken(tab, tool, path, pathway) {
 }
 
 function updateToolSheet(email, tool, path) {
-  const ss = SpreadsheetApp.getActive();              // The Form Responses tab in the spreadsheet.
+  const ss = SpreadsheetApp.getActive();
 
   // Find the sheet for the tool. If tool not found, add a new tab and style it with some defaults.
-  let toolSheet = ss.getSheetByName(tool);            // Retrieve the tab called <tool>. Eg. Canva, ThingLink. Save it to its own variable.
-  if (!toolSheet) {                                   // The exclamation point is another way to say NOT. In this case: IF (NO TOOLSHEET) THEN ...
-    toolSheet = ss.insertSheet().setName(tool);       // Insert a sheet and set its name to <tool>.
-    toolSheet.getRange("A1").setValue("Teacher");     // Set some preset default formatting to the sheet. Set cell A1 to "Teacher".
-    toolSheet.getRange("B1").setValue("Expert");     // Set some preset default formatting to the sheet. Set cell A1 to "Teacher".
+  let toolSheet = ss.getSheetByName(tool);
+  if (!toolSheet) {
+    toolSheet = ss.insertSheet().setName(tool);
+    toolSheet.getRange("A1").setValue("Teacher");
+    toolSheet.getRange("B1").setValue("Expert");
     toolSheet.hideColumns(2);
-    toolSheet.setFrozenColumns(1);                    // Freeze the first column.
-    toolSheet.setFrozenRows(1);                       // Freeze the first row.
+    toolSheet.setFrozenColumns(1);
+    toolSheet.setFrozenRows(1);
   };
 
 
@@ -237,9 +235,9 @@ function updateToolSheet(email, tool, path) {
   let user = toolSheet.getDataRange().getValues();
   let userRow = user.findIndex((user) => user[0].trim() === email) + 1;
   if (userRow < 1) { 
-    userRow = toolSheet.getLastRow()+1;                // Set the userRow to the last row + 1 because we'll be adding a new row.
-    toolSheet.getRange(userRow,1).setValue(email);     // Add the teacher to this spot.
-    toolSheet.getRange(userRow, 2).insertCheckboxes(); // Insert a checkbox in the Expert column.
+    userRow = toolSheet.getLastRow()+1;
+    toolSheet.getRange(userRow,1).setValue(email);
+    toolSheet.getRange(userRow, 2).insertCheckboxes();
   };
 
   /* Find the pathway beside the person in the tool's tab. If not found, add the pathway at the end.
@@ -254,11 +252,10 @@ function updateToolSheet(email, tool, path) {
   const rowCol = toolSheet.getRange(userRow,pathCol);
 
   const completed = rowCol.getValue();
-  // Add a checkbox in the appropriate userRow and pathCol. Check the box.
   rowCol.insertCheckboxes().check();
   
   // The first index is their email. Therefore, the number of tokens the user has is the array length - 1.
-  user = toolSheet.getDataRange().getValues(); // Reinitiate user.
+  user = toolSheet.getDataRange().getValues();
   const numTokens = user.find((value) => value[0].trim() === email).filter((el) => el === true).length;
 
   return {numTokens, completed, expert: toolSheet.getRange(userRow, 2).getValue()}
